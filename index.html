@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paturain Recepten Spel</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Paturain Recepten Spel</h1>
+            <p>Maak heerlijke gerechten met Paturain!</p>
+        </header>
+
+        <div class="game-area">
+            <div class="ingredients">
+                <h2>Ingrediënten</h2>
+                <div class="ingredient-list">
+                    <div class="ingredient" draggable="true" data-ingredient="paturain">Paturain</div>
+                    <div class="ingredient" draggable="true" data-ingredient="pasta">Pasta</div>
+                    <div class="ingredient" draggable="true" data-ingredient="kip">Kip</div>
+                    <div class="ingredient" draggable="true" data-ingredient="groenten">Groenten</div>
+                    <div class="ingredient" draggable="true" data-ingredient="kruiden">Kruiden</div>
+                </div>
+            </div>
+
+            <div class="recipe-area">
+                <h2>Jouw Recept</h2>
+                <div class="recipe-bowl" id="recipe-bowl">
+                    <p>Sleep ingrediënten hierheen om je recept te maken!</p>
+                </div>
+                <button id="check-recipe">Maak Recept</button>
+            </div>
+
+            <div class="result" id="result">
+                <h2>Resultaat</h2>
+                <div id="recipe-result"></div>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html> 

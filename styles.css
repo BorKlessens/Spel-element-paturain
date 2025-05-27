@@ -1,0 +1,112 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    line-height: 1.6;
+    background-color: #f4f4f4;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+header h1 {
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.game-area {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    gap: 20px;
+}
+
+.ingredients, .recipe-area, .result {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.ingredient-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ingredient {
+    padding: 10px;
+    background-color: #e8f4f8;
+    border: 2px solid #3498db;
+    border-radius: 5px;
+    cursor: move;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.ingredient:hover {
+    transform: scale(1.05);
+    background-color: #d4e6f1;
+}
+
+.recipe-bowl {
+    min-height: 200px;
+    border: 2px dashed #3498db;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px 0;
+    text-align: center;
+    background-color: #f8f9fa;
+}
+
+button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.2s;
+}
+
+button:hover {
+    background-color: #2980b9;
+}
+
+#recipe-result {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+}
+
+.dragging {
+    opacity: 0.5;
+}
+
+.ingredient-in-bowl {
+    display: inline-block;
+    margin: 5px;
+    padding: 5px 10px;
+    background-color: #e8f4f8;
+    border: 1px solid #3498db;
+    border-radius: 15px;
+} 

@@ -3,42 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paturain Recepten Spel</title>
-    <link rel="stylesheet" href="styles.css">
+    <title>Paturain Kookavontuur</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
+    <div class="game-container">
         <header>
-            <h1>Paturain Recepten Spel</h1>
-            <p>Maak heerlijke gerechten met Paturain!</p>
+            <img src="images/paturain-logo.png" alt="Paturain Logo" class="logo">
+            <h1>Paturain Kookavontuur</h1>
         </header>
 
-        <div class="game-area">
-            <div class="ingredients">
-                <h2>Ingrediënten</h2>
-                <div class="ingredient-list">
-                    <div class="ingredient" draggable="true" data-ingredient="paturain">Paturain</div>
-                    <div class="ingredient" draggable="true" data-ingredient="pasta">Pasta</div>
-                    <div class="ingredient" draggable="true" data-ingredient="kip">Kip</div>
-                    <div class="ingredient" draggable="true" data-ingredient="groenten">Groenten</div>
-                    <div class="ingredient" draggable="true" data-ingredient="kruiden">Kruiden</div>
+        <main>
+            <div class="game-area">
+                <div class="customer-order">
+                    <h2>Bestelling</h2>
+                    <div id="order-display">
+                        <p>Wacht op een bestelling...</p>
+                    </div>
+                </div>
+
+                <div class="kitchen-area">
+                    <div class="ingredients-section">
+                        <h3>Ingrediënten</h3>
+                        <div id="ingredients-container" class="ingredients-grid">
+                            <!-- Ingredients will be added dynamically -->
+                        </div>
+                    </div>
+
+                    <div class="preparation-area">
+                        <h3>Bereidingsgebied</h3>
+                        <div id="preparation-container" class="preparation-box">
+                            <p>Sleep hier je ingrediënten naartoe</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="controls">
+                    <button id="serve-button" class="btn-primary" disabled>Serveer Gerecht</button>
+                    <button id="reset-button" class="btn-secondary">Begin Opnieuw</button>
                 </div>
             </div>
 
-            <div class="recipe-area">
-                <h2>Jouw Recept</h2>
-                <div class="recipe-bowl" id="recipe-bowl">
-                    <p>Sleep ingrediënten hierheen om je recept te maken!</p>
-                </div>
-                <button id="check-recipe">Maak Recept</button>
+            <div class="score-board">
+                <h3>Score</h3>
+                <p>Correcte gerechten: <span id="score">0</span></p>
             </div>
+        </main>
 
-            <div class="result" id="result">
-                <h2>Resultaat</h2>
-                <div id="recipe-result"></div>
+        <div id="game-overlay" class="overlay hidden">
+            <div class="overlay-content">
+                <h2>Welkom bij Paturain Kookavontuur!</h2>
+                <p>Maak heerlijke gerechten met Paturain roomkaas en help onze klanten.</p>
+                <button id="start-game" class="btn-primary">Start Spel</button>
             </div>
         </div>
     </div>
-    <script src="script.js"></script>
+
+    <script src="js/game.js"></script>
 </body>
 </html> 

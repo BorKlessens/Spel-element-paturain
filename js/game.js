@@ -31,7 +31,13 @@ const gameState = {
         "komkommer": "webp",
         "tomaat": "webp",
         "basilicum": "png" // Fallback to PNG for missing images
-    }
+    },
+    customerAvatars: [
+        "customer1.png",
+        "customer2.png",
+        "customer3.png",
+        "customer4.png"
+    ]
 };
 
 // DOM Elements
@@ -55,6 +61,12 @@ const MAX_ORDER_INTERVAL = 5000; // 5 seconden maximum tussen bestellingen
 function getImagePath(ingredient) {
     const extension = gameState.imageExtensions[ingredient] || 'png';
     return `images/ingredients/${ingredient}.${extension}`;
+}
+
+// Helper function to get random customer avatar
+function getRandomCustomerAvatar() {
+    const randomIndex = Math.floor(Math.random() * gameState.customerAvatars.length);
+    return `images/customers/${gameState.customerAvatars[randomIndex]}`;
 }
 
 // Initialize the game
@@ -208,7 +220,7 @@ function updatePreparationArea() {
 function checkRecipe() {
     const serveButtons = document.querySelectorAll('.serve-button');
     serveButtons.forEach(button => {
-        const orderId = parseInt(button.closest('.order-card').dataset.orderId);
+        const orderId = parseInt(button.closest('.customer').dataset.orderId);
         const order = gameState.activeOrders.find(o => o.id === orderId);
         
         if (order) {
@@ -233,7 +245,7 @@ function generateNewOrder() {
     };
     
     gameState.activeOrders.push(order);
-    createOrderCard(order);
+    createCustomerWithOrder(order);
     startOrderTimer(orderId);
     
     // Genereer een nieuwe bestelling na een kortere willekeurige tijd
@@ -244,11 +256,23 @@ function generateNewOrder() {
     }, Math.random() * (MAX_ORDER_INTERVAL - MIN_ORDER_INTERVAL) + MIN_ORDER_INTERVAL);
 }
 
-function createOrderCard(order) {
+function createCustomerWithOrder(order) {
+    const customer = document.createElement('div');
+    customer.className = 'customer';
+    customer.dataset.orderId = order.id;
+    
+    const avatar = document.createElement('div');
+    avatar.className = 'customer-avatar';
+    const avatarImg = document.createElement('img');
+    avatarImg.src = getRandomCustomerAvatar();
+    avatarImg.alt = 'Customer';
+    avatar.appendChild(avatarImg);
+    
+    const speechBubble = document.createElement('div');
+    speechBubble.className = 'speech-bubble';
+    
     const orderCard = document.createElement('div');
     orderCard.className = 'order-card';
-    orderCard.dataset.orderId = order.id;
-    
     orderCard.innerHTML = `
         <h3>${order.recipe.name}</h3>
         <p>${order.recipe.description}</p>
@@ -268,10 +292,13 @@ function createOrderCard(order) {
         <button class="serve-button" disabled>Serveer</button>
     `;
     
-    elements.ordersContainer.appendChild(orderCard);
+    speechBubble.appendChild(orderCard);
+    customer.appendChild(speechBubble);
+    customer.appendChild(avatar);
     
-    // Voeg event listener toe voor de serve button
-    const serveButton = orderCard.querySelector('.serve-button');
+    elements.ordersContainer.appendChild(customer);
+    
+    const serveButton = customer.querySelector('.serve-button');
     serveButton.addEventListener('click', () => serveOrder(order.id));
 }
 
@@ -309,13 +336,13 @@ function handleOrderTimeUp(orderId) {
         gameState.score = Math.max(0, gameState.score - 10); // Verhoogd van -5 naar -10 punten
         elements.scoreDisplay.textContent = gameState.score;
         
-        const orderCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
-        if (orderCard) {
-            orderCard.innerHTML += '<p class="error-message">Te laat! -10 punten</p>';
+        const customer = document.querySelector(`.customer[data-order-id="${orderId}"]`);
+        if (customer) {
+            customer.classList.add('leaving');
             setTimeout(() => {
-                orderCard.remove();
+                customer.remove();
                 gameState.activeOrders = gameState.activeOrders.filter(o => o.id !== orderId);
-            }, 1500); // Verlaagd van 2000 naar 1500ms
+            }, 500);
         }
     }
 }
@@ -332,15 +359,15 @@ function serveOrder(orderId) {
         gameState.score += 2; // Verhoogd van 1 naar 2 punten voor snelle service
         elements.scoreDisplay.textContent = gameState.score;
         
-        const orderCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
-        if (orderCard) {
-            orderCard.innerHTML += '<p class="success-message">Perfect! +2 punten!</p>';
+        const customer = document.querySelector(`.customer[data-order-id="${orderId}"]`);
+        if (customer) {
+            customer.classList.add('leaving');
             setTimeout(() => {
-                orderCard.remove();
+                customer.remove();
                 gameState.activeOrders = gameState.activeOrders.filter(o => o.id !== orderId);
                 clearInterval(orderTimers[orderId]);
                 delete orderTimers[orderId];
-            }, 1000); // Verlaagd van 1500 naar 1000ms
+            }, 500);
         }
         
         resetPreparation();

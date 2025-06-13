@@ -140,83 +140,237 @@ header {
 
 .orders-container {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    flex-direction: row;
+    align-items: flex-end;
+    gap: 0;
+    margin-bottom: 0.25rem;
+    padding: 4rem 0.5rem 0.15rem 0.5rem;
+    min-height: 280px;
+    position: relative;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.3));
+    border-radius: 10px;
     overflow-x: auto;
-    padding: 0.5rem;
-    min-height: 180px;
+    overflow-y: hidden;
+    justify-content: flex-start;
+}
+
+.customer {
+    position: relative;
+    width: 160px;
+    height: 180px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    animation: customerEnter 0.5s ease-out;
+    margin-right: 40px;
+    padding-top: 40px;
+}
+
+.customer:first-child {
+    margin-left: 40px;
+}
+
+.customer-avatar {
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    border: 3px solid white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+.customer-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.speech-bubble {
+    position: absolute;
+    top: -140px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    padding: 0.8rem;
+    border-radius: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 180px;
+    min-height: 90px;
+    z-index: 2;
+}
+
+.speech-bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 10px 10px 0;
+    border-style: solid;
+    border-color: white transparent transparent;
 }
 
 .order-card {
-    background-color: var(--accent-color);
-    padding: 1rem;
-    border-radius: 10px;
+    background-color: transparent;
+    padding: 0;
+    border-radius: 0;
     position: relative;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease;
-    min-width: 280px;
-    max-width: 280px;
+    box-shadow: none;
+    min-width: auto;
+    max-width: none;
     flex-shrink: 0;
-}
-
-.order-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 100%;
 }
 
 .order-card h3 {
-    margin-bottom: 0.5rem;
+    font-size: 0.85rem;
+    margin-bottom: 0.3rem;
     color: var(--primary-color);
+    text-align: center;
+    line-height: 1.2;
+}
+
+.order-card p {
+    font-size: 0.75rem;
+    color: var(--text-color);
+    margin-bottom: 0.5rem;
+    text-align: center;
+    line-height: 1.2;
 }
 
 .order-card .timer-container {
-    margin: 0.5rem 0;
+    margin: 0.3rem 0;
 }
 
 .order-card .order-ingredients {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-top: 1rem;
+    gap: 0.3rem;
+    margin-top: 0.5rem;
+    justify-content: center;
 }
 
 .order-card .order-ingredient {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.2rem;
 }
 
 .order-card .order-ingredient img {
-    width: 40px;
-    height: 40px;
+    width: 28px;
+    height: 28px;
     object-fit: contain;
 }
 
 .order-card .order-ingredient span {
-    font-size: 0.8rem;
+    font-size: 0.65rem;
 }
 
 .order-card .serve-button {
     position: absolute;
-    bottom: 1rem;
-    right: 1rem;
-    padding: 0.5rem 1rem;
+    bottom: -20px;
+    right: 50%;
+    transform: translateX(50%);
+    padding: 0.35rem 0.7rem;
     background-color: var(--primary-color);
     color: white;
     border: none;
-    border-radius: 5px;
+    border-radius: 15px;
     cursor: pointer;
-    transition: background-color 0.3s;
+    transition: all 0.3s ease;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 2;
 }
 
-.order-card .serve-button:hover {
-    background-color: var(--secondary-color);
+@keyframes customerEnter {
+    from {
+        opacity: 0;
+        transform: translateX(-200px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
-.order-card .serve-button:disabled {
-    background-color: #ccc;
-    cursor: not-allowed;
+@keyframes customerLeave {
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    to {
+        opacity: 0;
+        transform: translateX(200px);
+    }
+}
+
+.customer.leaving {
+    animation: customerLeave 0.5s ease-in forwards;
+}
+
+/* Voeg een subtiele achtergrond toe aan de orders container */
+.orders-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to right, 
+        rgba(255, 255, 255, 0.1) 0%,
+        rgba(255, 255, 255, 0.2) 50%,
+        rgba(255, 255, 255, 0.1) 100%);
+    pointer-events: none;
+}
+
+/* Voeg een subtiele schaduw toe aan de klanten */
+.customer {
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+/* Maak de spraakwolkjes wat speelser */
+.speech-bubble {
+    transform-origin: bottom center;
+    animation: bubblePop 0.3s ease-out;
+}
+
+@keyframes bubblePop {
+    0% {
+        transform: translateX(-50%) scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        transform: translateX(-50%) scale(1.1);
+    }
+    100% {
+        transform: translateX(-50%) scale(1);
+        opacity: 1;
+    }
+}
+
+/* Voeg een scrollbar styling toe */
+.orders-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.orders-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.orders-container::-webkit-scrollbar-thumb {
+    background: var(--accent-color);
+    border-radius: 4px;
+}
+
+.orders-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
 }
 
 .kitchen-area {

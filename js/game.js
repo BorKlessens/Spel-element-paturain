@@ -1,7 +1,7 @@
 // Game state
 const gameState = {
     score: 0,
-    currentOrder: null,
+    activeOrders: [],
     selectedIngredients: [],
     recipes: [
         {
@@ -36,19 +36,20 @@ const gameState = {
 
 // DOM Elements
 const elements = {
-    orderDisplay: document.getElementById('order-display'),
+    ordersContainer: document.querySelector('.orders-container'),
     ingredientsContainer: document.getElementById('ingredients-container'),
     preparationContainer: document.getElementById('preparation-container'),
-    serveButton: document.getElementById('serve-button'),
     resetButton: document.getElementById('reset-button'),
     scoreDisplay: document.getElementById('score'),
     gameOverlay: document.getElementById('game-overlay'),
     startGameButton: document.getElementById('start-game')
 };
 
-let timerInterval;
-let timeLeft;
-const ORDER_TIME = 60; // 60 seconden per bestelling
+let orderTimers = {};
+const ORDER_TIME = 30; // Verlaagd van 60 naar 30 seconden
+const MAX_ACTIVE_ORDERS = 4; // Verhoogd van 3 naar 4
+const MIN_ORDER_INTERVAL = 2000; // 2 seconden minimum tussen bestellingen
+const MAX_ORDER_INTERVAL = 5000; // 5 seconden maximum tussen bestellingen
 
 // Helper function to get image path
 function getImagePath(ingredient) {
@@ -61,7 +62,7 @@ function initGame() {
     createIngredients();
     setupEventListeners();
     showWelcomeScreen();
-    startTimer();
+    generateNewOrder();
 }
 
 // Create draggable ingredients
@@ -102,7 +103,6 @@ function setupEventListeners() {
     elements.preparationContainer.addEventListener('drop', handleDrop);
 
     // Button listeners
-    elements.serveButton.addEventListener('click', serveDish);
     elements.resetButton.addEventListener('click', resetPreparation);
     elements.startGameButton.addEventListener('click', startGame);
 }
@@ -206,68 +206,151 @@ function updatePreparationArea() {
 }
 
 function checkRecipe() {
-    const currentRecipe = gameState.currentOrder;
-    if (!currentRecipe) return;
+    const serveButtons = document.querySelectorAll('.serve-button');
+    serveButtons.forEach(button => {
+        const orderId = parseInt(button.closest('.order-card').dataset.orderId);
+        const order = gameState.activeOrders.find(o => o.id === orderId);
+        
+        if (order) {
+            const isCorrect = order.recipe.ingredients.every(ing => 
+                gameState.selectedIngredients.includes(ing)
+            ) && gameState.selectedIngredients.length === order.recipe.ingredients.length;
+            
+            button.disabled = !isCorrect;
+        }
+    });
+}
 
-    const isCorrect = currentRecipe.ingredients.every(ing => 
-        gameState.selectedIngredients.includes(ing)
-    ) && gameState.selectedIngredients.length === currentRecipe.ingredients.length;
+function generateNewOrder() {
+    const randomRecipe = gameState.recipes[Math.floor(Math.random() * gameState.recipes.length)];
+    const orderId = Date.now();
+    
+    const order = {
+        id: orderId,
+        recipe: randomRecipe,
+        ingredients: [],
+        timer: ORDER_TIME
+    };
+    
+    gameState.activeOrders.push(order);
+    createOrderCard(order);
+    startOrderTimer(orderId);
+    
+    // Genereer een nieuwe bestelling na een kortere willekeurige tijd
+    setTimeout(() => {
+        if (gameState.activeOrders.length < MAX_ACTIVE_ORDERS) {
+            generateNewOrder();
+        }
+    }, Math.random() * (MAX_ORDER_INTERVAL - MIN_ORDER_INTERVAL) + MIN_ORDER_INTERVAL);
+}
 
-    elements.serveButton.disabled = !isCorrect;
+function createOrderCard(order) {
+    const orderCard = document.createElement('div');
+    orderCard.className = 'order-card';
+    orderCard.dataset.orderId = order.id;
+    
+    orderCard.innerHTML = `
+        <h3>${order.recipe.name}</h3>
+        <p>${order.recipe.description}</p>
+        <div class="timer-container">
+            <div class="timer-bar" data-order-id="${order.id}"></div>
+        </div>
+        <div class="order-ingredients">
+            ${order.recipe.ingredients.map(ingredient => `
+                <div class="order-ingredient">
+                    <img src="${getImagePath(ingredient)}" alt="${ingredient}" 
+                         onerror="this.onerror=null; this.style.display='none'; 
+                                 this.parentElement.innerHTML += '<div class=\'fallback-text\'>${ingredient.charAt(0).toUpperCase() + ingredient.slice(1)}</div>'">
+                    <span>${ingredient.charAt(0).toUpperCase() + ingredient.slice(1)}</span>
+                </div>
+            `).join('')}
+        </div>
+        <button class="serve-button" disabled>Serveer</button>
+    `;
+    
+    elements.ordersContainer.appendChild(orderCard);
+    
+    // Voeg event listener toe voor de serve button
+    const serveButton = orderCard.querySelector('.serve-button');
+    serveButton.addEventListener('click', () => serveOrder(order.id));
+}
 
-    // Stop timer als bestelling correct is
-    if (isCorrect) {
-        clearInterval(timerInterval);
+function startOrderTimer(orderId) {
+    const timerBar = document.querySelector(`.timer-bar[data-order-id="${orderId}"]`);
+    let timeLeft = ORDER_TIME;
+    
+    timerBar.style.width = '100%';
+    timerBar.classList.remove('warning', 'danger');
+    
+    orderTimers[orderId] = setInterval(() => {
+        timeLeft--;
+        const percentage = (timeLeft / ORDER_TIME) * 100;
+        timerBar.style.width = `${percentage}%`;
+        
+        // Snellere kleurverandering voor meer urgentie
+        if (percentage <= 20) { // Verlaagd van 30 naar 20
+            timerBar.classList.add('danger');
+        } else if (percentage <= 40) { // Verlaagd van 60 naar 40
+            timerBar.classList.add('warning');
+        }
+        
+        if (timeLeft <= 0) {
+            handleOrderTimeUp(orderId);
+        }
+    }, 1000);
+}
+
+function handleOrderTimeUp(orderId) {
+    clearInterval(orderTimers[orderId]);
+    delete orderTimers[orderId];
+    
+    const order = gameState.activeOrders.find(o => o.id === orderId);
+    if (order) {
+        gameState.score = Math.max(0, gameState.score - 10); // Verhoogd van -5 naar -10 punten
+        elements.scoreDisplay.textContent = gameState.score;
+        
+        const orderCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
+        if (orderCard) {
+            orderCard.innerHTML += '<p class="error-message">Te laat! -10 punten</p>';
+            setTimeout(() => {
+                orderCard.remove();
+                gameState.activeOrders = gameState.activeOrders.filter(o => o.id !== orderId);
+            }, 1500); // Verlaagd van 2000 naar 1500ms
+        }
     }
 }
 
-function serveDish() {
-    if (gameState.currentOrder) {
-        gameState.score++;
+function serveOrder(orderId) {
+    const order = gameState.activeOrders.find(o => o.id === orderId);
+    if (!order) return;
+    
+    const isCorrect = order.recipe.ingredients.every(ing => 
+        gameState.selectedIngredients.includes(ing)
+    ) && gameState.selectedIngredients.length === order.recipe.ingredients.length;
+    
+    if (isCorrect) {
+        gameState.score += 2; // Verhoogd van 1 naar 2 punten voor snelle service
         elements.scoreDisplay.textContent = gameState.score;
-        showSuccessMessage();
-        setTimeout(generateNewOrder, 1500);
+        
+        const orderCard = document.querySelector(`.order-card[data-order-id="${orderId}"]`);
+        if (orderCard) {
+            orderCard.innerHTML += '<p class="success-message">Perfect! +2 punten!</p>';
+            setTimeout(() => {
+                orderCard.remove();
+                gameState.activeOrders = gameState.activeOrders.filter(o => o.id !== orderId);
+                clearInterval(orderTimers[orderId]);
+                delete orderTimers[orderId];
+            }, 1000); // Verlaagd van 1500 naar 1000ms
+        }
+        
+        resetPreparation();
     }
 }
 
 function resetPreparation() {
     gameState.selectedIngredients = [];
     updatePreparationArea();
-    elements.serveButton.disabled = true;
-}
-
-function generateNewOrder() {
-    const randomRecipe = gameState.recipes[Math.floor(Math.random() * gameState.recipes.length)];
-    gameState.currentOrder = randomRecipe;
-    
-    const orderDisplay = document.getElementById('order-display');
-    orderDisplay.innerHTML = `
-        <h3>${randomRecipe.name}</h3>
-        <p>${randomRecipe.description}</p>
-    `;
-    
-    const orderIngredients = document.querySelector('.order-ingredients');
-    orderIngredients.innerHTML = randomRecipe.ingredients.map(ingredient => `
-        <div class="order-ingredient">
-            <img src="${getImagePath(ingredient)}" alt="${ingredient}" 
-                 onerror="this.onerror=null; this.style.display='none'; 
-                         this.parentElement.innerHTML += '<div class=\'fallback-text\'>${ingredient.charAt(0).toUpperCase() + ingredient.slice(1)}</div>'">
-            <span>${ingredient.charAt(0).toUpperCase() + ingredient.slice(1)}</span>
-        </div>
-    `).join('');
-    
-    resetPreparation();
-    
-    // Start timer voor nieuwe bestelling
-    startTimer();
-}
-
-function showSuccessMessage() {
-    const successMessage = document.createElement('div');
-    successMessage.className = 'success-message';
-    successMessage.textContent = 'Heerlijk! De klant is tevreden!';
-    elements.orderDisplay.appendChild(successMessage);
-    setTimeout(() => successMessage.remove(), 1500);
+    checkRecipe();
 }
 
 function showWelcomeScreen() {
@@ -277,54 +360,6 @@ function showWelcomeScreen() {
 function startGame() {
     elements.gameOverlay.classList.add('hidden');
     generateNewOrder();
-}
-
-function startTimer() {
-    const timerBar = document.querySelector('.timer-bar');
-    timeLeft = ORDER_TIME;
-    
-    // Reset timer bar
-    timerBar.style.width = '100%';
-    timerBar.classList.remove('warning', 'danger');
-    
-    // Clear any existing timer
-    if (timerInterval) {
-        clearInterval(timerInterval);
-    }
-    
-    // Start new timer
-    timerInterval = setInterval(() => {
-        timeLeft--;
-        const percentage = (timeLeft / ORDER_TIME) * 100;
-        timerBar.style.width = `${percentage}%`;
-        
-        // Change color based on remaining time
-        if (percentage <= 30) {
-            timerBar.classList.add('danger');
-        } else if (percentage <= 60) {
-            timerBar.classList.add('warning');
-        }
-        
-        if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            handleTimeUp();
-        }
-    }, 1000);
-}
-
-function handleTimeUp() {
-    // Verminder score
-    gameState.score = Math.max(0, gameState.score - 5);
-    elements.scoreDisplay.textContent = gameState.score;
-    
-    // Toon bericht
-    const orderDisplay = document.getElementById('order-display');
-    orderDisplay.innerHTML = '<p class="error-message">Te laat! -5 punten</p>';
-    
-    // Genereer nieuwe bestelling na korte pauze
-    setTimeout(() => {
-        generateNewOrder();
-    }, 2000);
 }
 
 // Initialize the game when the DOM is loaded

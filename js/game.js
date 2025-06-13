@@ -46,6 +46,10 @@ const elements = {
     startGameButton: document.getElementById('start-game')
 };
 
+let timerInterval;
+let timeLeft;
+const ORDER_TIME = 60; // 60 seconden per bestelling
+
 // Helper function to get image path
 function getImagePath(ingredient) {
     const extension = gameState.imageExtensions[ingredient] || 'png';
@@ -57,6 +61,7 @@ function initGame() {
     createIngredients();
     setupEventListeners();
     showWelcomeScreen();
+    startTimer();
 }
 
 // Create draggable ingredients
@@ -104,53 +109,81 @@ function setupEventListeners() {
 
 // Drag and drop handlers
 function handleDragStart(e) {
-    const ingredient = e.target.dataset.ingredient;
-    if (!ingredient) return; // Prevent dragging if no ingredient is set
+    // Zorg ervoor dat we het juiste element pakken (ingredient div of img)
+    const ingredientElement = e.target.closest('.ingredient');
+    if (!ingredientElement) return;
+    
+    const ingredient = ingredientElement.dataset.ingredient;
+    if (!ingredient) return;
     
     e.dataTransfer.setData('text/plain', ingredient);
-    e.target.classList.add('dragging');
+    ingredientElement.classList.add('dragging');
+    
+    // Voeg een kleine vertraging toe voor betere visuele feedback
+    setTimeout(() => {
+        ingredientElement.classList.add('dragging');
+    }, 0);
 }
 
 function handleDragOver(e) {
     e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
 }
 
 function handleDrop(e) {
     e.preventDefault();
     const ingredient = e.dataTransfer.getData('text/plain');
-    if (!ingredient) return; // Prevent adding undefined ingredients
+    if (!ingredient) return;
     
-    const draggingElement = document.querySelector('.dragging');
-    if (draggingElement) {
-        draggingElement.classList.remove('dragging');
-    }
+    // Verwijder de dragging class van alle elementen
+    document.querySelectorAll('.dragging').forEach(el => {
+        el.classList.remove('dragging');
+    });
     
     addIngredient(ingredient);
 }
 
 // Game logic functions
 function addIngredient(ingredient) {
-    if (!ingredient || !gameState.availableIngredients.includes(ingredient)) return; // Validate ingredient
+    if (!ingredient || !gameState.availableIngredients.includes(ingredient)) return;
     
-    if (!gameState.selectedIngredients.includes(ingredient)) {
-        gameState.selectedIngredients.push(ingredient);
-        updatePreparationArea();
-        checkRecipe();
+    // Controleer of het ingrediënt al is toegevoegd
+    if (gameState.selectedIngredients.includes(ingredient)) {
+        // Toon een bericht dat het ingrediënt al is toegevoegd
+        const preparationBox = document.getElementById('preparation-container');
+        const message = document.createElement('div');
+        message.className = 'error-message';
+        message.textContent = 'Dit ingrediënt is al toegevoegd!';
+        preparationBox.appendChild(message);
+        
+        // Verwijder het bericht na 1.5 seconden
+        setTimeout(() => {
+            message.remove();
+        }, 1500);
+        return;
     }
+    
+    gameState.selectedIngredients.push(ingredient);
+    updatePreparationArea();
+    checkRecipe();
 }
 
 function updatePreparationArea() {
-    elements.preparationContainer.innerHTML = '';
+    const preparationContainer = document.getElementById('preparation-container');
+    preparationContainer.innerHTML = '';
+    
     if (gameState.selectedIngredients.length === 0) {
-        elements.preparationContainer.innerHTML = '<p>Sleep hier je ingrediënten naartoe</p>';
+        preparationContainer.innerHTML = '<p>Sleep hier je ingrediënten naartoe</p>';
         return;
     }
 
     gameState.selectedIngredients.forEach(ingredient => {
-        if (!ingredient) return; // Skip undefined ingredients
+        if (!ingredient) return;
         
         const ingredientElement = document.createElement('div');
         ingredientElement.className = 'ingredient';
+        ingredientElement.draggable = true;
+        ingredientElement.dataset.ingredient = ingredient;
         
         const img = document.createElement('img');
         img.src = getImagePath(ingredient);
@@ -168,7 +201,7 @@ function updatePreparationArea() {
         
         ingredientElement.appendChild(img);
         ingredientElement.appendChild(span);
-        elements.preparationContainer.appendChild(ingredientElement);
+        preparationContainer.appendChild(ingredientElement);
     });
 }
 
@@ -181,6 +214,11 @@ function checkRecipe() {
     ) && gameState.selectedIngredients.length === currentRecipe.ingredients.length;
 
     elements.serveButton.disabled = !isCorrect;
+
+    // Stop timer als bestelling correct is
+    if (isCorrect) {
+        clearInterval(timerInterval);
+    }
 }
 
 function serveDish() {
@@ -202,21 +240,26 @@ function generateNewOrder() {
     const randomRecipe = gameState.recipes[Math.floor(Math.random() * gameState.recipes.length)];
     gameState.currentOrder = randomRecipe;
     
-    elements.orderDisplay.innerHTML = `
+    const orderDisplay = document.getElementById('order-display');
+    orderDisplay.innerHTML = `
         <h3>${randomRecipe.name}</h3>
         <p>${randomRecipe.description}</p>
-        <div class="order-ingredients">
-            ${randomRecipe.ingredients.map(ingredient => `
-                <div class="order-ingredient">
-                    <img src="${getImagePath(ingredient)}" alt="${ingredient}" 
-                         onerror="this.onerror=null; this.style.display='none'; 
-                                 this.parentElement.innerHTML += '<div class=\'fallback-text\'>${ingredient.charAt(0).toUpperCase() + ingredient.slice(1)}</div>'">
-                    <span>${ingredient.charAt(0).toUpperCase() + ingredient.slice(1)}</span>
-                </div>
-            `).join('')}
-        </div>
     `;
+    
+    const orderIngredients = document.querySelector('.order-ingredients');
+    orderIngredients.innerHTML = randomRecipe.ingredients.map(ingredient => `
+        <div class="order-ingredient">
+            <img src="${getImagePath(ingredient)}" alt="${ingredient}" 
+                 onerror="this.onerror=null; this.style.display='none'; 
+                         this.parentElement.innerHTML += '<div class=\'fallback-text\'>${ingredient.charAt(0).toUpperCase() + ingredient.slice(1)}</div>'">
+            <span>${ingredient.charAt(0).toUpperCase() + ingredient.slice(1)}</span>
+        </div>
+    `).join('');
+    
     resetPreparation();
+    
+    // Start timer voor nieuwe bestelling
+    startTimer();
 }
 
 function showSuccessMessage() {
@@ -234,6 +277,54 @@ function showWelcomeScreen() {
 function startGame() {
     elements.gameOverlay.classList.add('hidden');
     generateNewOrder();
+}
+
+function startTimer() {
+    const timerBar = document.querySelector('.timer-bar');
+    timeLeft = ORDER_TIME;
+    
+    // Reset timer bar
+    timerBar.style.width = '100%';
+    timerBar.classList.remove('warning', 'danger');
+    
+    // Clear any existing timer
+    if (timerInterval) {
+        clearInterval(timerInterval);
+    }
+    
+    // Start new timer
+    timerInterval = setInterval(() => {
+        timeLeft--;
+        const percentage = (timeLeft / ORDER_TIME) * 100;
+        timerBar.style.width = `${percentage}%`;
+        
+        // Change color based on remaining time
+        if (percentage <= 30) {
+            timerBar.classList.add('danger');
+        } else if (percentage <= 60) {
+            timerBar.classList.add('warning');
+        }
+        
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            handleTimeUp();
+        }
+    }, 1000);
+}
+
+function handleTimeUp() {
+    // Verminder score
+    gameState.score = Math.max(0, gameState.score - 5);
+    elements.scoreDisplay.textContent = gameState.score;
+    
+    // Toon bericht
+    const orderDisplay = document.getElementById('order-display');
+    orderDisplay.innerHTML = '<p class="error-message">Te laat! -5 punten</p>';
+    
+    // Genereer nieuwe bestelling na korte pauze
+    setTimeout(() => {
+        generateNewOrder();
+    }, 2000);
 }
 
 // Initialize the game when the DOM is loaded

@@ -38,8 +38,15 @@ header {
 }
 
 .logo {
-    max-width: 200px;
+    max-width: 300px;
+    height: auto;
     margin-bottom: 1rem;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.02);
 }
 
 .game-area {
@@ -109,53 +116,186 @@ header {
     to { opacity: 1; transform: translateY(0); }
 }
 
+.error-message {
+    background-color: var(--error-color);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+    text-align: center;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 .kitchen-area {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 2rem;
     margin-bottom: 2rem;
+    position: relative;
 }
 
-.ingredients-section, .preparation-area {
-    background-color: #fff;
+.ingredients-section {
+    background-color: #f5f5f5;
     padding: 1.5rem;
     border-radius: 10px;
     border: 2px solid var(--accent-color);
+    position: relative;
+    overflow: hidden;
+    min-height: 400px;
+    background-image: 
+        url('../images/background/keuken.png'),
+        linear-gradient(45deg, rgba(245, 245, 245, 0.3) 25%, transparent 25%),
+        linear-gradient(-45deg, rgba(245, 245, 245, 0.3) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, rgba(245, 245, 245, 0.3) 75%),
+        linear-gradient(-45deg, transparent 75%, rgba(245, 245, 245, 0.3) 75%);
+    background-size: cover, 20px 20px, 20px 20px, 20px 20px, 20px 20px;
+    background-position: center, 0 0, 0 10px, 10px -10px, -10px 0px;
+    background-repeat: no-repeat;
+}
+
+/* Kitchen counter design */
+.ingredients-section::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 80px;
+    background: linear-gradient(to bottom, rgba(139, 69, 19, 0.7), rgba(160, 82, 45, 0.7));
+    border-top: 4px solid #DEB887;
+    z-index: 1;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Add a subtle vignette effect */
+.ingredients-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.1) 100%);
+    pointer-events: none;
+    z-index: 1;
+}
+
+/* Kitchen decoration */
+.kitchen-decoration {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+}
+
+.kitchen-utensil {
+    position: absolute;
+    opacity: 0.2;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    filter: drop-shadow(2px 2px 2px rgba(0, 0, 0, 0.3));
+}
+
+.kitchen-utensil.spoon {
+    top: 30px;
+    right: 40px;
+    width: 50px;
+    height: 50px;
+    transform: rotate(-15deg);
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%238B4513"><path d="M14.88 3.05L13 2l-1.88 1.05L10 3l1.88 1.05L13 5.12l1.12-.63L16 3l-1.12-.95zM21 10l-1.88 1.05L18 12l1.88 1.05L21 14.12l1.12-.63L24 12l-1.12-.95L21 10zM14.88 21.05L13 22l-1.88-1.05L10 21l1.88-1.05L13 18.88l1.12.63L16 21l-1.12.95zM3 8l1.88 1.05L6 10l-1.88 1.05L3 12.12l-1.12-.63L0 10l1.12-.95L3 8zM3 16l1.88 1.05L6 18l-1.88 1.05L3 20.12l-1.12-.63L0 18l1.12-.95L3 16z"/></svg>');
+}
+
+.kitchen-utensil.knife {
+    top: 90px;
+    right: 60px;
+    width: 40px;
+    height: 40px;
+    transform: rotate(45deg);
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%238B4513"><path d="M22.2 2.2l-2.5 2.5c-.3.3-.3.8 0 1.1l1.1 1.1c.3.3.8.3 1.1 0l2.5-2.5c.3-.3.3-.8 0-1.1l-1.1-1.1c-.3-.3-.8-.3-1.1 0zM21.3 8.7l-1.1-1.1c-.3-.3-.8-.3-1.1 0l-2.5 2.5c-.3.3-.3.8 0 1.1l1.1 1.1c.3.3.8.3 1.1 0l2.5-2.5c.3-.3.3-.8 0-1.1zM8.7 21.3l-1.1-1.1c-.3-.3-.8-.3-1.1 0l-2.5 2.5c-.3.3-.3.8 0 1.1l1.1 1.1c.3.3.8.3 1.1 0l2.5-2.5c.3-.3.3-.8 0-1.1z"/></svg>');
+}
+
+.kitchen-utensil.pot {
+    bottom: 100px;
+    right: 40px;
+    width: 60px;
+    height: 60px;
+    transform: rotate(-10deg);
+    background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%238B4513"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/><path d="M12 17c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm0-8c1.65 0 3 1.35 3 3s-1.35 3-3 3-3-1.35-3-3 1.35-3 3-3z"/></svg>');
 }
 
 .ingredients-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
     gap: 1rem;
     margin-top: 1rem;
+    position: relative;
+    z-index: 3;
+    padding-bottom: 80px;
 }
 
 .ingredient {
-    background-color: var(--accent-color);
+    background-color: rgba(222, 184, 135, 0.3);
     padding: 1rem;
     border-radius: 8px;
     text-align: center;
     cursor: move;
-    transition: transform 0.2s;
+    transition: all 0.3s ease;
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(2px);
+}
+
+.ingredient:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    background-color: rgba(222, 184, 135, 0.5);
 }
 
 .ingredient img {
     width: 64px;
     height: 64px;
     object-fit: contain;
+    transition: transform 0.3s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+}
+
+.ingredient:hover img {
+    transform: scale(1.1);
 }
 
 .ingredient span {
     font-size: 0.9rem;
-    font-weight: 500;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
 }
 
-.ingredient:hover {
-    transform: scale(1.05);
+/* Preparation area styling */
+.preparation-area {
+    background-color: rgba(255, 255, 255, 0.3);
+    padding: 1.5rem;
+    border-radius: 10px;
+    border: 2px solid var(--accent-color);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(2px);
+    background-image: url('../images/background/restaurant.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 .preparation-box {
@@ -169,10 +309,25 @@ header {
     text-align: center;
     flex-wrap: wrap;
     gap: 1rem;
+    background-color: rgba(250, 250, 250, 0.3);
+    position: relative;
+    z-index: 1;
+    backdrop-filter: blur(1px);
 }
 
-.preparation-box .ingredient {
-    margin: 0.5rem;
+.preparation-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: 
+        radial-gradient(circle at 10px 10px, rgba(240, 240, 240, 0.2) 2px, transparent 2px),
+        radial-gradient(circle at 30px 30px, rgba(240, 240, 240, 0.2) 2px, transparent 2px);
+    background-size: 40px 40px;
+    opacity: 0.3;
+    z-index: -1;
 }
 
 .controls {
@@ -274,4 +429,57 @@ header {
 .order-ingredient .fallback-text {
     font-size: 0.8rem;
     padding: 0.3rem;
+}
+
+/* Add some animation to the utensils */
+@keyframes float {
+    0% { transform: translateY(0) rotate(var(--rotation)); }
+    50% { transform: translateY(-5px) rotate(var(--rotation)); }
+    100% { transform: translateY(0) rotate(var(--rotation)); }
+}
+
+.kitchen-utensil {
+    animation: float 3s ease-in-out infinite;
+    --rotation: 0deg;
+}
+
+.kitchen-utensil.spoon {
+    animation-delay: 0s;
+    --rotation: -15deg;
+}
+
+.kitchen-utensil.knife {
+    animation-delay: 1s;
+    --rotation: 45deg;
+}
+
+.kitchen-utensil.pot {
+    animation-delay: 2s;
+    --rotation: -10deg;
+}
+
+.timer-container {
+    width: 100%;
+    height: 10px;
+    background-color: rgba(255, 255, 255, 0.3);
+    border-radius: 5px;
+    margin: 10px 0;
+    overflow: hidden;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.timer-bar {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to right, #2E8B57, #FFD700);
+    transition: width 1s linear;
+    border-radius: 5px;
+}
+
+.timer-bar.warning {
+    background: linear-gradient(to right, #FFD700, #FF4500);
+}
+
+.timer-bar.danger {
+    background: linear-gradient(to right, #FF4500, #FF0000);
 } 
